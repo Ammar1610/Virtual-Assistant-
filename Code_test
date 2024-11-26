@@ -1,0 +1,85 @@
+import speech_recognition as sr
+import pyttsx3
+import pywhatkit
+import datetime
+import wikipedia
+import pyjokes
+import webbrowser
+
+listener = sr.Recognizer()
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[1].id)
+
+
+def talk(text):
+    engine.say(text)
+    engine.runAndWait()
+    print(text)
+
+
+def take_command(use_speech_recognition=False):
+    command = ""
+    if use_speech_recognition:
+        try:
+            with sr.Microphone() as source:
+                print('Listening...')
+                voice = listener.listen(source)
+                command = listener.recognize_google(voice)
+                command = command.lower()
+                print("You: "+command)
+                
+        except sr.UnknownValueError:
+            print("Sorry, I did not understand the audio.")
+        except sr.RequestError:
+            print("Could not request results from Google Speech Recognition service.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+    else:
+        command = input("Please enter your command: ")
+        command = command.lower()
+        print("You: "+command)
+
+
+    return command
+
+
+def run_bot():
+    command = take_command()
+    command_list=command.split()
+    if 'hi' in command_list:
+        talk('Hello, I am your chatbot, how can I help you?') 
+
+
+    elif 'play' in command_list:
+        song = command.replace('play', '')
+        talk('playing ' + song)
+        pywhatkit.playonyt(song)
+
+
+    elif 'time' in command_list:
+        time = datetime.datetime.now().strftime('%I:%M %p')
+        talk('Current time is ' + time)
+
+
+    elif 'who' in command:
+        person = command.replace('who is', '')
+        info = wikipedia.summary(person,1)
+        talk(info)
+
+    elif 'what' in command_list:
+        talk('i am searching for it, please wait ')
+        command=command.replace('what is ','')
+        webbrowser.open('https://www.google.com/search?q='+command)    
+
+
+    elif 'joke' in command_list:
+        talk(pyjokes.get_joke())
+
+
+    else:
+        talk('please repeat the command.')
+        
+
+while(True):
+    run_bot()
